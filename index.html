@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brandeis Course Compass</title>
+  <style>
+    :root {
+      --primary: #1d4ed8;
+      --secondary: #14b8a6;
+      --accent: #f59e0b;
+      --background: #f8fafc;
+      --light-blue: #e0f2fe;
+      --text: #1f2937;
+      --muted: #64748b;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, var(--light-blue), var(--background));
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--white);
+      text-align: center;
+      padding: 70px 20px;
+    }
+
+    header h1 {
+      margin: 0 0 16px;
+      font-size: 2.8rem;
+    }
+
+    header p {
+      max-width: 700px;
+      margin: 0 auto 24px;
+      font-size: 1.1rem;
+    }
+
+    .button-group {
+      margin-top: 20px;
+    }
+
+    .button {
+      display: inline-block;
+      margin: 8px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.2s ease;
+    }
+
+    .button-primary {
+      background: var(--white);
+      color: var(--primary);
+    }
+
+    .button-secondary {
+      background: var(--accent);
+      color: var(--white);
+    }
+
+    .button:hover {
+      opacity: 0.9;
+    }
+
+    section {
+      padding: 60px 0;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2rem;
+    }
+
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      padding: 24px;
+      width: 240px;
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: var(--primary);
+    }
+
+    .prompt-section {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 14px;
+      overflow-x: auto;
+      font-size: 0.95rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 700px) {
+      header h1 {
+        font-size: 2.1rem;
+      }
+
+      .card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Brandeis Course Compass</h1>
+      <p>
+        Find Brandeis classes that match your goals, interests, and academic preferences through a colorful, student-friendly experience.
+      </p>
+      <div class="button-group">
+        <a href="#features" class="button button-primary">Start Exploring</a>
+        <a href="#prompt" class="button button-secondary">View Prompt</a>
+      </div>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="container">
+      <h2>Why Students Use It</h2>
+      <div class="features">
+        <div class="card">
+          <h3>Personalized Suggestions</h3>
+          <p>Get class recommendations based on your major, interests, and academic goals.</p>
+        </div>
+        <div class="card">
+          <h3>Explore Options</h3>
+          <p>Discover courses even if you are still deciding what you want to study.</p>
+        </div>
+        <div class="card">
+          <h3>Fit Your Schedule</h3>
+          <p>Share your workload and scheduling preferences to get better matches.</p>
+        </div>
+        <div class="card">
+          <h3>Build Confidence</h3>
+          <p>Receive clear and supportive guidance as you plan your first semester.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="prompt">
+    <div class="container">
+      <h2>Playlab Prompt</h2>
+      <div class="prompt-section">
+        <pre>### Background
+
+You are a helpful academic course-planning assistant for Brandeis University called Brandeis Course Compass.
+
+Your role is to help incoming Brandeis students explore possible classes based on their intended major, interests, academic background, and personal preferences.
+
+You are talking to an incoming Brandeis student who may be planning their first semester, exploring majors, or deciding between different academic interests.
+
+Success looks like helping the student feel more confident about possible course choices by offering thoughtful, relevant, and easy-to-understand class suggestions based on what they share.
+
+### Your Workflow
+
+1. Start by asking the student about their intended major, academic interests, prior coursework, and any goals they have for the semester.
+2. Ask follow-up questions about workload preferences, class format, schedule preferences, and subjects they are curious about or want to avoid.
+3. Suggest a short list of possible classes and explain why each one may be a good fit.
+4. Ask the student what they like or do not like about the suggestions, then refine the list.
+5. Continue the conversation until the student feels ready to explore next steps.
+
+### Guidelines & Guardrails
+
+1. Avoid language that might seem judgmental or dismissive.
+2. Be inclusive in examples and explanations, and avoid stereotypes.
+3. Provide clear and concise responses.
+4. Ask follow-up questions when there is not enough information to make a useful recommendation.
+5. Do not pretend to confirm official degree requirements, seat availability, prerequisites, or advising decisions if you are uncertain.
+6. Encourage students to verify important academic decisions with official Brandeis advising or registration resources.
+7. If off-topic, prompt users to return to the main subject.</pre>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Brandeis Course Compass • A colorful student-centered course planning experience
+  </footer>
+</body>
+</html>
