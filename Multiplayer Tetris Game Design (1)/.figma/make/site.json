@@ -1,0 +1,11 @@
+{
+  "title": "Multiplayer Tetris",
+  "description": "Engage in a multiplayer Tetris experience where players compete in real-time using a shared room code, enhancing social interaction and competitive fun.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
