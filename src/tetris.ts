@@ -1,18 +1,20 @@
 export const COLS = 10;
 export const ROWS = 20;
 
-export type Cell = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+/** 0 = empty, 1-7 = piece types, 8 = garbage sent by the opponent. */
+export type Cell = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export type Board = Cell[][];
 export type PieceType = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export const PIECE_COLORS: Record<number, string> = {
   1: "#00E5FF", // I  cyan
-  2: "#FFE000", // O  yellow
-  3: "#00C840", // S  green
-  4: "#FF2020", // Z  red (matches accent)
-  5: "#FF8C00", // L  orange
-  6: "#3366FF", // J  blue
-  7: "#C040FF", // T  purple
+  2: "#FF2E92", // O  magenta (matches accent)
+  3: "#39FF14", // S  neon green
+  4: "#FF3864", // Z  neon red
+  5: "#FFB000", // L  amber
+  6: "#3B82F6", // J  electric blue
+  7: "#A855F7", // T  violet
+  8: "#4B4B5C", // garbage  grey
 };
 
 // All 4 rotations for each piece, explicitly defined for correct pivot behaviour
@@ -146,4 +148,30 @@ export function linesToScore(lines: number, level: number): number {
 
 export function tickMs(level: number): number {
   return Math.max(80, 800 - level * 65);
+}
+
+/** Garbage rows are solid grey with a single hole. */
+export const GARBAGE_CELL: Cell = 8;
+
+/**
+ * Push `rows` garbage lines in from the bottom, dropping the same number of
+ * rows off the top. All rows in one attack share a hole column, matching
+ * standard versus behaviour.
+ */
+export function addGarbage(board: Board, rows: number): Board {
+  if (rows <= 0) return board;
+  const n = Math.min(rows, ROWS);
+  const hole = Math.floor(Math.random() * COLS);
+  const garbage = Array.from({ length: n }, () =>
+    Array.from({ length: COLS }, (_, c) => (c === hole ? 0 : GARBAGE_CELL)) as Cell[]
+  );
+  return [...board.slice(n), ...garbage] as Board;
+}
+
+/**
+ * Attack sent to the opponent for clearing `lines` rows at once.
+ * 1 → 0, 2 → 1, 3 → 2, 4 → 4.
+ */
+export function linesToAttack(lines: number): number {
+  return [0, 0, 1, 2, 4][lines] ?? 0;
 }

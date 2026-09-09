@@ -1,9 +1,10 @@
-import { useReducer, useEffect } from "react";
+// Pure game logic, kept free of React so it can be reasoned about and tested
+// on its own. `useGame` is the thin hook wrapper around this reducer.
 import * as T from "./tetris";
 
 export type Status = "idle" | "playing" | "paused" | "over";
 
-type State = {
+export type State = {
   board: T.Board;
   piece: T.Piece | null;
   next: T.PieceType;
@@ -11,18 +12,24 @@ type State = {
   lines: number;
   level: number;
   status: Status;
+  /** Garbage rows received while a piece was locking, applied on next lock. */
+  incoming: number;
+  /** Attack rows earned but not yet handed to the network layer. */
+  outbox: number;
 };
 
-type Action =
+export type Action =
   | { type: "START" }
   | { type: "TICK" }
   | { type: "MOVE"; dx: number }
   | { type: "ROTATE" }
   | { type: "SOFT_DROP" }
   | { type: "HARD_DROP" }
-  | { type: "PAUSE" };
+  | { type: "PAUSE" }
+  | { type: "GARBAGE"; rows: number }
+  | { type: "FLUSH_OUTBOX" };
 
-function init(): State {
+export function init(): State {
   return {
     board: T.emptyBoard(),
     piece: null,
@@ -31,6 +38,8 @@ function init(): State {
     lines: 0,
     level: 0,
     status: "idle",
+    incoming: 0,
+    outbox: 0,
   };
 }
 
@@ -44,14 +53,30 @@ function spawnNext(s: State): State {
 function lock(s: State): State {
   if (!s.piece) return s;
   const placed = T.place(s.board, s.piece);
-  const { board, cleared } = T.clearLines(placed);
-  const lines = s.lines + cleared;
+  const { board: cleared, cleared: clearedRows } = T.clearLines(placed);
+
+  // Clearing lines cancels pending garbage before any of it lands.
+  const attack = T.linesToAttack(clearedRows);
+  const remaining = Math.max(0, s.incoming - clearedRows);
+  const board = remaining > 0 ? T.addGarbage(cleared, remaining) : cleared;
+
+  const lines = s.lines + clearedRows;
   const level = Math.floor(lines / 10);
-  const score = s.score + T.linesToScore(cleared, level);
-  return spawnNext({ ...s, board, lines, level, score, piece: null });
+  const score = s.score + T.linesToScore(clearedRows, level);
+
+  return spawnNext({
+    ...s,
+    board,
+    lines,
+    level,
+    score,
+    piece: null,
+    incoming: 0,
+    outbox: s.outbox + attack,
+  });
 }
 
-function reducer(s: State, a: Action): State {
+export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case "START":
       return spawnNext({ ...init(), status: "playing" });
@@ -60,6 +85,20 @@ function reducer(s: State, a: Action): State {
       if (s.status === "playing") return { ...s, status: "paused" };
       if (s.status === "paused") return { ...s, status: "playing" };
       return s;
+
+    case "FLUSH_OUTBOX":
+      return s.outbox === 0 ? s : { ...s, outbox: 0 };
+
+    case "GARBAGE": {
+      if (a.rows <= 0) return s;
+      // Only meaningful mid-game; ignore otherwise so a late packet cannot
+      // corrupt a finished or unstarted board.
+      if (s.status !== "playing" && s.status !== "paused") return s;
+      if (!s.piece) return { ...s, board: T.addGarbage(s.board, a.rows) };
+      // A piece is in play — queue it so the active piece is not teleported
+      // into a wall mid-drop.
+      return { ...s, incoming: s.incoming + a.rows };
+    }
 
     case "TICK": {
       if (s.status !== "playing" || !s.piece) return s;
@@ -95,50 +134,4 @@ function reducer(s: State, a: Action): State {
     default:
       return s;
   }
-}
-
-export function useGame() {
-  const [state, dispatch] = useReducer(reducer, undefined, init);
-
-  // Gravity tick — recreated when level or status changes
-  useEffect(() => {
-    if (state.status !== "playing") return;
-    const id = setInterval(() => dispatch({ type: "TICK" }), T.tickMs(state.level));
-    return () => clearInterval(id);
-  }, [state.status, state.level]);
-
-  // Keyboard controls
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      // Allow repeat only for movement and soft drop
-      if (e.repeat) {
-        if (e.key === "ArrowLeft") { e.preventDefault(); dispatch({ type: "MOVE", dx: -1 }); }
-        else if (e.key === "ArrowRight") { e.preventDefault(); dispatch({ type: "MOVE", dx: 1 }); }
-        else if (e.key === "ArrowDown") { e.preventDefault(); dispatch({ type: "SOFT_DROP" }); }
-        return;
-      }
-      switch (e.key) {
-        case "ArrowLeft":  e.preventDefault(); dispatch({ type: "MOVE", dx: -1 }); break;
-        case "ArrowRight": e.preventDefault(); dispatch({ type: "MOVE", dx: 1 });  break;
-        case "ArrowUp":    e.preventDefault(); dispatch({ type: "ROTATE" });        break;
-        case "ArrowDown":  e.preventDefault(); dispatch({ type: "SOFT_DROP" });     break;
-        case " ":          e.preventDefault(); dispatch({ type: "HARD_DROP" });     break;
-        case "p": case "P": dispatch({ type: "PAUSE" }); break;
-      }
-    };
-    window.addEventListener("keydown", down);
-    return () => window.removeEventListener("keydown", down);
-  }, []);
-
-  const ghostPiece =
-    state.piece && state.status === "playing"
-      ? T.ghost(state.board, state.piece)
-      : null;
-
-  return {
-    ...state,
-    ghost: ghostPiece,
-    start: () => dispatch({ type: "START" }),
-    pause: () => dispatch({ type: "PAUSE" }),
-  };
 }
